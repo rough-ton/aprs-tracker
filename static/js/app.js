@@ -6,7 +6,7 @@
 'use strict';
 
 /* ── Constants ── */
-const DEFAULT_CENTER = [40.4074185,-105.1433749]; // Loveland, CO
+const DEFAULT_CENTER = [40.39552259970397, -105.0736803361188]; // Loveland, CO
 const DEFAULT_ZOOM = 14;
 
 /**
