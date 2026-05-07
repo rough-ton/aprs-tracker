@@ -6,7 +6,7 @@
 'use strict';
 
 /* ── Constants ── */
-const DEFAULT_CENTER = [40.39552259970397, -105.0736803361188]; // Loveland, CO
+const DEFAULT_CENTER = [40.39578407000783, -105.07436698165085]; // Loveland, CO
 const DEFAULT_ZOOM = 14;
 
 /**
@@ -485,6 +485,8 @@ async function doLookup() {
   if (!callsigns.length) return;
 
   state.callsigns = callsigns;
+  // Persist searched callsigns so they survive page refresh
+  try { localStorage.setItem('aprs_last_callsigns', raw); } catch (_) {}
   setLoading(true);
   $('#search-hint').textContent = `Fetching data for ${callsigns.join(', ')}…`;
 
@@ -639,8 +641,14 @@ function init() {
   $('#settings-overlay').addEventListener('click', closeSettings);
   $('#btn-save-settings').addEventListener('click', applySettings);
 
-  // Load saved callsigns on startup
-  if (state.settings.savedCallsigns) {
+  // Restore last searched callsigns on page load (survives refresh)
+  const lastCallsigns = (() => {
+    try { return localStorage.getItem('aprs_last_callsigns') || ''; } catch (_) { return ''; }
+  })();
+  if (lastCallsigns) {
+    $('#input-callsigns').value = lastCallsigns;
+    doLookup();
+  } else if (state.settings.savedCallsigns) {
     $('#input-callsigns').value = state.settings.savedCallsigns;
     doLookup();
   }

@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <title>APRS Tracker</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><!--Font Awesome Free 6.5.2 tower-broadcast path--><rect width='512' height='512' rx='100' fill='%230ea5e9'/><path fill='white' d='M192 0C147.8 0 112 35.8 112 80s35.8 80 80 80s80-35.8 80-80S236.2 0 192 0zM38.4 180.8C14.9 210.2 0 247.5 0 288c0 47.1 19.1 89.7 49.9 120.6L73.4 385c-23.1-24.3-37.4-57-37.4-93c0-30.2 9.9-58.1 26.5-80.7l-24.1-30.5zM345.6 180.8l-24.1 30.5C338.1 233.9 348 261.8 348 292c0 36-14.3 68.7-37.4 93l23.5 23.6C364.9 377.7 384 335.1 384 288c0-40.5-14.9-77.8-38.4-107.2zM112.6 219.7C97.1 238.6 88 262.3 88 288c0 33.5 13.8 63.8 35.9 85.6L147.4 350c-15.4-15.6-24.9-37-24.9-61.9c-.1-19.8 6.5-38 17.3-52.7l-27.2-15.7zM271.4 219.7l-27.2 15.6c10.8 14.7 17.3 32.9 17.3 52.7c0 24.9-9.5 46.3-24.9 61.9l23.5 23.6C282.2 351.8 296 321.5 296 288c0-25.7-9.1-49.4-24.6-68.3zM192 240c-26.5 0-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48s-21.5-48-48-48zM168 416v96h48V416h-48z'/></svg>" />
+  <!-- Favicons — place your favicon files in static/favicon/ -->
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
@@ -16,7 +20,7 @@
     <header class="app-header">
       <div class="header-inner">
         <div class="header-title">
-          <i class="fa-solid fa-tower-broadcast header-icon"></i>
+          <img src="{{ url_for('static', filename='favicon/favicon-32x32.png') }}" class="header-icon" alt="APRS Tracker" width="28" height="28">
           <span>APRS Tracker</span>
         </div>
         <button id="btn-settings" class="icon-btn" aria-label="Settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
