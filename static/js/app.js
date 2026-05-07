@@ -201,7 +201,7 @@ const APRS_SYMBOL_MAP = {
   'u': { icon: 'fa-truck-pickup',   color: '#0ea5e9', label: 'Truck'       },
   'U': { icon: 'fa-bus',            color: '#6366f1', label: 'Bus'         },
   '^': { icon: 'fa-plane',          color: '#6366f1', label: 'Aircraft'    },
-  ''': { icon: 'fa-plane',         color: '#8b5cf6', label: 'Aircraft'    },
+  "'": { icon: 'fa-plane',         color: '#8b5cf6', label: 'Aircraft'    },
   'X': { icon: 'fa-helicopter',     color: '#8b5cf6', label: 'Helicopter'  },
   'v': { icon: 'fa-van-shuttle',    color: '#0ea5e9', label: 'Van'         },
   // People / portable
