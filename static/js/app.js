@@ -152,6 +152,8 @@ function initMainMap() {
   mainMap = L.map('map', { zoomControl: true, attributionControl: false })
     .setView(DEFAULT_CENTER, DEFAULT_ZOOM);
   setMapLayer(state.settings.mapLayer || 'osm');
+  // Defer size calculation until after the DOM has fully painted
+  setTimeout(() => mainMap.invalidateSize({ pan: false }), 100);
 }
 
 /**

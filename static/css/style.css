@@ -73,8 +73,7 @@ body {
   position: relative;
   overflow: hidden;
   background: var(--bg);
-  /* CSS containment: nothing inside can affect layout outside */
-  contain: layout size;
+
 }
 
 /* ── Header ── */
@@ -352,11 +351,12 @@ body {
 /* ── Map ── */
 #map {
   height: 320px;
-  min-height: 220px;
+  min-height: 320px;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
   width: 100%;
+  display: block;
 }
 
 #history-map {
