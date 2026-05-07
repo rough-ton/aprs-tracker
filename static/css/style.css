@@ -296,32 +296,39 @@ body {
 .layer-switcher {
   display: flex;
   gap: 6px;
-  padding: 8px 12px;
+  padding: 8px 12px 8px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .layer-switcher::-webkit-scrollbar { display: none; }
 
 .layer-btn {
-  display: flex;
+  /* Reset — don't inherit btn-primary or btn-secondary */
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   background: var(--bg-input);
   border: 1.5px solid var(--border);
   border-radius: 20px;
   color: var(--text-muted);
+  font-family: var(--font);
   font-size: 12px;
   font-weight: 600;
   padding: 5px 12px;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .layer-btn:hover {
@@ -334,11 +341,12 @@ body {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
-  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.3);
 }
 
 .layer-btn i {
-  font-size: 11px;
+  font-size: 10px;
+  pointer-events: none;
 }
 
 /* ── Map ── */
@@ -875,31 +883,35 @@ body {
 
 /* ── APRS Map Markers ── */
 .aprs-marker-wrap {
-  background: none !important;
+  background: transparent !important;
   border: none !important;
+  overflow: visible !important;
 }
 
 .aprs-marker-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  width: 80px;
+  gap: 3px;
+  width: 70px;
 }
 
-.aprs-symbol {
-  border-radius: 3px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  flex-shrink: 0;
-}
-
-.aprs-dot {
-  width: 16px;
-  height: 16px;
+.aprs-icon-wrap {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
   flex-shrink: 0;
+}
+
+.aprs-icon-wrap i {
+  color: #fff;
+  font-size: 13px;
+  pointer-events: none;
 }
 
 .aprs-label {
@@ -907,17 +919,17 @@ body {
   font-size: 10px;
   font-weight: 700;
   color: #1e293b;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.12);
   border-radius: 4px;
-  padding: 1px 4px;
+  padding: 1px 5px;
   white-space: nowrap;
-  letter-spacing: 0.04em;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-  max-width: 80px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  max-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* ── Leaflet z-index containment ── */
