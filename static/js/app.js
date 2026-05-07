@@ -8,8 +8,8 @@
 /* ── Constants ── */
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-const DEFAULT_CENTER = [40.4074185, -105.1433749]; // Loveland, CO
-const DEFAULT_ZOOM = 14;
+const DEFAULT_CENTER = [39.7392, -104.9903]; // Denver, CO
+const DEFAULT_ZOOM = 8;
 
 /* ── State ── */
 const state = {
@@ -222,6 +222,9 @@ function renderStationCards() {
 
 /* ── Update map markers ── */
 function updateMapMarkers() {
+  // Force Leaflet to recalculate container bounds — prevents width blowout on mobile
+  if (mainMap) mainMap.invalidateSize({ pan: false });
+
   Object.values(state.locationData).forEach(entry => {
     const latlng = [entry.lat, entry.lng];
     if (markers[entry.callsign]) {
