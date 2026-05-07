@@ -22,6 +22,7 @@ CORS(app)
 
 APRS_FI_BASE_URL = "https://api.aprs.fi/api/get"
 APRS_FI_API_KEY = os.environ.get("APRS_FI_API_KEY", "")
+BUILD_VERSION = os.environ.get("BUILD_VERSION", "dev")
 REQUEST_TIMEOUT = 10
 
 
@@ -91,6 +92,7 @@ def parse_location_entry(entry: dict[str, Any]) -> dict[str, Any]:
         "speed": float(entry.get("speed", 0)),
         "course": float(entry.get("course", 0)),
         "symbol": entry.get("symbol", ""),
+        "symbol_table": entry.get("symbol_table", "/"),
         "comment": entry.get("comment", ""),
         "path": entry.get("path", ""),
         "srccall": entry.get("srccall", ""),
@@ -141,7 +143,7 @@ def index() -> str:
     Returns:
         Rendered HTML template.
     """
-    return render_template("index.html")
+    return render_template("index.html", build_version=BUILD_VERSION)
 
 
 @app.route("/api/location")

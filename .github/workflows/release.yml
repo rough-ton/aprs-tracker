@@ -31,3 +31,5 @@ jobs:
           build-args: |
             BUILD_TIMESTAMP=${{ github.event.head_commit.timestamp }}
             BUILD_VERSION=${{ github.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
