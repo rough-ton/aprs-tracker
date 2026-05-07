@@ -11,13 +11,18 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.title="aprs-tracker"
-LABEL org.opencontainers.image.description="APRS station tracker via aprs.fi"
+LABEL org.opencontainers.image.description="Mobile-friendly APRS station tracker via aprs.fi"
 LABEL org.opencontainers.image.source="https://github.com/YOUR_USERNAME/aprs-tracker"
+
+# Accept build-time version arg from CI, default to "dev"
+ARG BUILD_VERSION=dev
+ARG BUILD_TIMESTAMP=""
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=5050 \
-    HOME=/home/aprs
+    PORT=5000 \
+    HOME=/home/aprs \
+    BUILD_VERSION=${BUILD_VERSION}
 
 # Non-root user with a real home directory so Gunicorn's master process
 # can write its control socket without hitting /nonexistent
@@ -41,7 +46,7 @@ USER aprs
 EXPOSE 5000
 
 CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5050", \
+     "--bind", "0.0.0.0:5000", \
      "--workers", "2", \
      "--timeout", "30", \
      "--worker-tmp-dir", "/tmp", \
