@@ -42,20 +42,23 @@
 
 html {
   height: 100%;
-  overflow-x: hidden; /* hard stop on horizontal scroll */
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
   height: 100%;
   overflow-x: hidden;
+  max-width: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
-  /* Prevent iOS from zooming inputs */
   -webkit-text-size-adjust: 100%;
+  /* Contain all children — prevents Leaflet injected elements from expanding body */
+  position: relative;
 }
 
 #app {
@@ -64,10 +67,14 @@ body {
   height: 100dvh;
   width: 100%;
   max-width: 580px;
+  /* Never exceed the physical viewport width on any device */
+  max-width: min(580px, 100vw);
   margin: 0 auto;
   position: relative;
   overflow: hidden;
   background: var(--bg);
+  /* CSS containment: nothing inside can affect layout outside */
+  contain: layout size;
 }
 
 /* ── Header ── */
@@ -318,6 +325,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+  max-width: calc(100vw - 60px);
 }
 
 .leaflet-popup-tip { background: var(--bg-surface); }
@@ -326,6 +334,8 @@ body {
   font-size: 13px;
   line-height: 1.7;
   margin: 12px 16px;
+  max-width: calc(100vw - 80px); /* never wider than screen minus marker offset */
+  word-break: break-word;
 }
 
 .popup-callsign {
