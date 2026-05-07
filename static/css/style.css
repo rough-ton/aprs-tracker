@@ -291,6 +291,56 @@ body {
 
 .tab-pane.active { display: flex; }
 
+
+/* ── Map Layer Switcher ── */
+.layer-switcher {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.layer-switcher::-webkit-scrollbar { display: none; }
+
+.layer-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.layer-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.layer-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(14, 165, 233, 0.35);
+}
+
+.layer-btn i {
+  font-size: 11px;
+}
+
 /* ── Map ── */
 #map {
   height: 320px;
@@ -820,6 +870,54 @@ body {
     box-shadow: var(--shadow-lg);
   }
   #map { height: 400px; }
+}
+
+
+/* ── APRS Map Markers ── */
+.aprs-marker-wrap {
+  background: none !important;
+  border: none !important;
+}
+
+.aprs-marker-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 80px;
+}
+
+.aprs-symbol {
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+
+.aprs-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+
+.aprs-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #1e293b;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 4px;
+  padding: 1px 4px;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 /* ── Leaflet z-index containment ── */

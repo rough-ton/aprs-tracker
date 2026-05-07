@@ -6,10 +6,41 @@
 'use strict';
 
 /* ── Constants ── */
-const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const DEFAULT_CENTER = [39.7392, -104.9903]; // Denver, CO
 const DEFAULT_ZOOM = 8;
+
+/**
+ * Available map tile layers.
+ * Satellite uses ESRI World Imagery (free, no key required).
+ * Topo uses ESRI World Topo Map.
+ * OSM Standard and CartoDB Voyager require no key.
+ */
+const TILE_LAYERS = {
+  osm: {
+    label: 'Streets',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  satellite: {
+    label: 'Satellite',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attr: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, NOAA',
+    maxZoom: 19,
+  },
+  topo: {
+    label: 'Topo',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attr: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom',
+    maxZoom: 19,
+  },
+  voyager: {
+    label: 'Voyager',
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19,
+  },
+};
 
 /* ── State ── */
 const state = {
@@ -19,6 +50,7 @@ const state = {
   historyData: {},    // callsign -> array of entries
   settings: loadSettings(),
   autoRefreshTimer: null,
+  activeLayer: null,  // current Leaflet tile layer on mainMap
 };
 
 /* ── DOM refs ── */
@@ -47,6 +79,7 @@ function defaultSettings() {
     interval: 60,
     units: 'imperial',
     savedCallsigns: '',
+    mapLayer: 'osm',
   };
 }
 
@@ -118,32 +151,111 @@ function initMainMap() {
   if (mainMap) return;
   mainMap = L.map('map', { zoomControl: true, attributionControl: false })
     .setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-  L.tileLayer(TILE_URL, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(mainMap);
+  setMapLayer(state.settings.mapLayer || 'osm');
+}
+
+/**
+ * Switch the main map tile layer.
+ * @param {string} layerKey - Key from TILE_LAYERS
+ */
+function setMapLayer(layerKey) {
+  const def = TILE_LAYERS[layerKey] || TILE_LAYERS.osm;
+  if (state.activeLayer) mainMap.removeLayer(state.activeLayer);
+  state.activeLayer = L.tileLayer(def.url, {
+    attribution: def.attr,
+    maxZoom: def.maxZoom,
+  }).addTo(mainMap);
+  state.settings.mapLayer = layerKey;
+  saveSettings();
+  // Update active button state
+  $$('.layer-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.layer === layerKey);
+  });
 }
 
 function initHistMap() {
   if (histMap) return;
   histMap = L.map('history-map', { zoomControl: false, attributionControl: false })
     .setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-  L.tileLayer(TILE_URL, { maxZoom: 19 }).addTo(histMap);
+  const def = TILE_LAYERS[state.settings.mapLayer || 'osm'] || TILE_LAYERS.osm;
+  L.tileLayer(def.url, { maxZoom: def.maxZoom }).addTo(histMap);
 }
 
-function makeMarkerIcon(callsign) {
-  const colors = ['#00c896', '#2fa8e0', '#e8a020', '#c070e0', '#e05050'];
-  const idx = callsign.charCodeAt(0) % colors.length;
+/* ── APRS Symbol rendering ──
+ * APRS uses two 16x16 sprite sheets, each with 96 symbols in a 16-col grid.
+ * Primary table: symbol_table='/' — sprite: symbols-18.png
+ * Alternate table: symbol_table='\' — sprite: symbols-18.png (row offset +6)
+ * Each symbol character maps to an index: charCode - 33 (first printable ASCII)
+ * Sprite sheet source: https://aprs.fi/symbols/
+ */
+const APRS_SPRITE_URL = 'https://aprs.fi/symbols/symbols-18.png';
+const SYMBOL_SIZE = 18;   // px per symbol in the sprite
+const SYMBOLS_PER_ROW = 16;
+
+/**
+ * Calculate the CSS background-position for an APRS symbol character.
+ * @param {string} symbolCode - Single character symbol code (e.g. '>' for car)
+ * @param {string} symbolTable - '/' for primary, '\' for alternate
+ * @returns {{ x: number, y: number }} pixel offset into the sprite sheet
+ */
+function aprsSymbolOffset(symbolCode, symbolTable) {
+  const idx = (symbolCode.charCodeAt(0) - 33);
+  const col = idx % SYMBOLS_PER_ROW;
+  // Alternate table symbols start 6 rows down in the sprite sheet
+  const rowOffset = (symbolTable === '\\' || symbolTable === '\\\\') ? 6 : 0;
+  const row = Math.floor(idx / SYMBOLS_PER_ROW) + rowOffset;
+  return {
+    x: -(col * SYMBOL_SIZE),
+    y: -(row * SYMBOL_SIZE),
+  };
+}
+
+/**
+ * Build a Leaflet divIcon showing the APRS sprite symbol + callsign label.
+ * Falls back to a colored dot if symbol data is missing.
+ * @param {string} callsign
+ * @param {string} symbol - APRS symbol character
+ * @param {string} symbolTable - APRS symbol table ('/' or '\')
+ * @returns {L.DivIcon}
+ */
+function makeMarkerIcon(callsign, symbol, symbolTable) {
+  // Fallback dot if no symbol data
+  if (!symbol) {
+    const colors = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
+    const color = colors[callsign.charCodeAt(0) % colors.length];
+    return L.divIcon({
+      className: 'aprs-marker-wrap',
+      html: `
+        <div class="aprs-marker-inner">
+          <div class="aprs-dot" style="background:${color}"></div>
+          <span class="aprs-label">${callsign}</span>
+        </div>`,
+      iconSize: [80, 36],
+      iconAnchor: [40, 18],
+      popupAnchor: [0, -20],
+    });
+  }
+
+  const { x, y } = aprsSymbolOffset(symbol, symbolTable || '/');
+
   return L.divIcon({
-    className: '',
-    html: `<div style="
-      background:${colors[idx]};
-      width:14px;height:14px;
-      border-radius:50% 50% 50% 0;
-      transform:rotate(-45deg);
-      border:2px solid rgba(255,255,255,0.85);
-      box-shadow:0 2px 8px rgba(0,0,0,0.6);
-    "></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 14],
-    popupAnchor: [0, -16],
+    className: 'aprs-marker-wrap',
+    html: `
+      <div class="aprs-marker-inner">
+        <div class="aprs-symbol" style="
+          background-image: url('${APRS_SPRITE_URL}');
+          background-position: ${x}px ${y}px;
+          background-repeat: no-repeat;
+          background-size: auto;
+          width: ${SYMBOL_SIZE}px;
+          height: ${SYMBOL_SIZE}px;
+          image-rendering: pixelated;
+        "></div>
+        <span class="aprs-label">${callsign}</span>
+      </div>`,
+    iconSize: [80, 36],
+    iconAnchor: [40, 9],   // anchor at center of symbol
+    popupAnchor: [0, -12],
   });
 }
 
@@ -229,9 +341,10 @@ function updateMapMarkers() {
     const latlng = [entry.lat, entry.lng];
     if (markers[entry.callsign]) {
       markers[entry.callsign].setLatLng(latlng);
+      markers[entry.callsign].setIcon(makeMarkerIcon(entry.callsign, entry.symbol, entry.symbol_table));
       markers[entry.callsign].setPopupContent(buildPopupHtml(entry));
     } else {
-      markers[entry.callsign] = L.marker(latlng, { icon: makeMarkerIcon(entry.callsign) })
+      markers[entry.callsign] = L.marker(latlng, { icon: makeMarkerIcon(entry.callsign, entry.symbol, entry.symbol_table) })
         .addTo(mainMap)
         .bindPopup(buildPopupHtml(entry));
     }
@@ -503,6 +616,15 @@ function init() {
     } finally {
       setLoading(false);
     }
+  });
+
+  // Map layer switcher
+  $$('.layer-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMapLayer(btn.dataset.layer));
+  });
+  // Set initial active state
+  $$('.layer-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.layer === (state.settings.mapLayer || 'osm'));
   });
 
   // Settings

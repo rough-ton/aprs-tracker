@@ -51,6 +51,12 @@
 
       <!-- MAP TAB -->
       <div id="tab-map" class="tab-pane active">
+        <div class="layer-switcher" role="group" aria-label="Map layer">
+          <button class="layer-btn active" data-layer="osm"><i class="fa-solid fa-road"></i> Streets</button>
+          <button class="layer-btn" data-layer="satellite"><i class="fa-solid fa-satellite"></i> Satellite</button>
+          <button class="layer-btn" data-layer="topo"><i class="fa-solid fa-mountain"></i> Topo</button>
+          <button class="layer-btn" data-layer="voyager"><i class="fa-solid fa-map"></i> Voyager</button>
+        </div>
         <div id="map"></div>
         <div id="station-cards" class="station-cards"></div>
       </div>
