@@ -20,7 +20,7 @@ ARG BUILD_TIMESTAMP=""
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=5000 \
+    PORT=5050 \
     HOME=/home/aprs \
     BUILD_VERSION=${BUILD_VERSION}
 
@@ -43,7 +43,7 @@ COPY --chown=aprs:aprs static/ static/
 
 USER aprs
 
-EXPOSE 5000
+EXPOSE 5050
 
 CMD ["gunicorn", \
      "--bind", "0.0.0.0:5050", \
