@@ -19,7 +19,7 @@ A mobile-friendly Flask web app for tracking APRS stations via the aprs.fi API.
 
 ```bash
 # Clone / unzip the project
-cd aprs_tracker
+cd aprs-tracker
 
 # Create a virtual environment
 python3 -m venv .venv
@@ -37,10 +37,10 @@ export $(cat .env | xargs)
 python app.py
 
 # Or with gunicorn (production)
-gunicorn -w 2 -b 0.0.0.0:5000 app:app
+gunicorn -w 2 -b 0.0.0.0:5050 app:app
 ```
 
-App will be available at `http://localhost:5000`.
+App will be available at `http://localhost:5050`.
 
 ## API Endpoints
 
@@ -71,7 +71,7 @@ aprs_tracker/
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `APRS_FI_API_KEY` | *(required)* | Your aprs.fi API key |
-| `PORT` | `5000` | Port to listen on |
+| `PORT` | `5050` | Port to listen on |
 | `FLASK_DEBUG` | `0` | Set to `1` for debug mode |
 
 ## Notes
