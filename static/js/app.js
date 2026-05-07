@@ -182,80 +182,84 @@ function initHistMap() {
 }
 
 /* ── APRS Symbol rendering ──
- * APRS uses two 16x16 sprite sheets, each with 96 symbols in a 16-col grid.
- * Primary table: symbol_table='/' — sprite: symbols-18.png
- * Alternate table: symbol_table='\' — sprite: symbols-18.png (row offset +6)
- * Each symbol character maps to an index: charCode - 33 (first printable ASCII)
- * Sprite sheet source: https://aprs.fi/symbols/
+ * Maps APRS symbol characters to Font Awesome icons + colors.
+ * This avoids CORS issues with external sprite sheets while still
+ * conveying meaningful station type information.
  */
-const APRS_SPRITE_URL = 'https://aprs.fi/symbols/symbols-18.png';
-const SYMBOL_SIZE = 18;   // px per symbol in the sprite
-const SYMBOLS_PER_ROW = 16;
 
 /**
- * Calculate the CSS background-position for an APRS symbol character.
- * @param {string} symbolCode - Single character symbol code (e.g. '>' for car)
- * @param {string} symbolTable - '/' for primary, '\' for alternate
- * @returns {{ x: number, y: number }} pixel offset into the sprite sheet
+ * Map common APRS primary table symbol chars to FA icon + color.
+ * Covers the most common station types seen on the air.
+ * @type {Record<string, {icon: string, color: string, label: string}>}
  */
-function aprsSymbolOffset(symbolCode, symbolTable) {
-  const idx = (symbolCode.charCodeAt(0) - 33);
-  const col = idx % SYMBOLS_PER_ROW;
-  // Alternate table symbols start 6 rows down in the sprite sheet
-  const rowOffset = (symbolTable === '\\' || symbolTable === '\\\\') ? 6 : 0;
-  const row = Math.floor(idx / SYMBOLS_PER_ROW) + rowOffset;
-  return {
-    x: -(col * SYMBOL_SIZE),
-    y: -(row * SYMBOL_SIZE),
-  };
+const APRS_SYMBOL_MAP = {
+  // Vehicles
+  '>': { icon: 'fa-car',            color: '#0ea5e9', label: 'Car'         },
+  'k': { icon: 'fa-truck',          color: '#0ea5e9', label: 'Truck'       },
+  'u': { icon: 'fa-truck-pickup',   color: '#0ea5e9', label: 'Truck'       },
+  'U': { icon: 'fa-bus',            color: '#6366f1', label: 'Bus'         },
+  '^': { icon: 'fa-plane',          color: '#6366f1', label: 'Aircraft'    },
+  ''': { icon: 'fa-plane',         color: '#8b5cf6', label: 'Aircraft'    },
+  'X': { icon: 'fa-helicopter',     color: '#8b5cf6', label: 'Helicopter'  },
+  'v': { icon: 'fa-van-shuttle',    color: '#0ea5e9', label: 'Van'         },
+  // People / portable
+  '[': { icon: 'fa-person-walking', color: '#10b981', label: 'Portable'    },
+  'Y': { icon: 'fa-sailboat',       color: '#0ea5e9', label: 'Boat'        },
+  // Infrastructure
+  '#': { icon: 'fa-tower-cell',     color: '#f59e0b', label: 'Digipeater'  },
+  'I': { icon: 'fa-tower-cell',     color: '#f59e0b', label: 'Igate'       },
+  'r': { icon: 'fa-tower-broadcast',color: '#f59e0b', label: 'Repeater'    },
+  // Fixed / home
+  '-': { icon: 'fa-house',          color: '#10b981', label: 'House'       },
+  '_': { icon: 'fa-cloud-sun-rain', color: '#6366f1', label: 'WX Station'  },
+  // Emergency
+  '!': { icon: 'fa-triangle-exclamation', color: '#ef4444', label: 'Emergency' },
+  // Misc
+  '/': { icon: 'fa-flag',           color: '#94a3b8', label: 'Flag'        },
+  'p': { icon: 'fa-paw',            color: '#10b981', label: 'Pet'         },
+  'b': { icon: 'fa-bicycle',        color: '#10b981', label: 'Bike'        },
+  's': { icon: 'fa-sailboat',       color: '#0ea5e9', label: 'Ship'        },
+};
+
+/** Default icon for unmapped symbols */
+const APRS_DEFAULT_ICON = { icon: 'fa-location-dot', color: '#0ea5e9', label: 'Station' };
+
+/**
+ * Build a per-callsign accent color for unknown symbols.
+ * @param {string} callsign
+ * @returns {string} hex color
+ */
+function callsignColor(callsign) {
+  const palette = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
+  return palette[callsign.charCodeAt(0) % palette.length];
 }
 
 /**
- * Build a Leaflet divIcon showing the APRS sprite symbol + callsign label.
- * Falls back to a colored dot if symbol data is missing.
+ * Build a Leaflet divIcon with a Font Awesome icon representing
+ * the APRS symbol type, plus the callsign label beneath it.
  * @param {string} callsign
  * @param {string} symbol - APRS symbol character
- * @param {string} symbolTable - APRS symbol table ('/' or '\')
+ * @param {string} symbolTable - APRS symbol table ('/' or '\\')
  * @returns {L.DivIcon}
  */
 function makeMarkerIcon(callsign, symbol, symbolTable) {
-  // Fallback dot if no symbol data
-  if (!symbol) {
-    const colors = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
-    const color = colors[callsign.charCodeAt(0) % colors.length];
-    return L.divIcon({
-      className: 'aprs-marker-wrap',
-      html: `
-        <div class="aprs-marker-inner">
-          <div class="aprs-dot" style="background:${color}"></div>
-          <span class="aprs-label">${callsign}</span>
-        </div>`,
-      iconSize: [80, 36],
-      iconAnchor: [40, 18],
-      popupAnchor: [0, -20],
-    });
-  }
+  const def = (symbol && APRS_SYMBOL_MAP[symbol]) || APRS_DEFAULT_ICON;
+  const color = def === APRS_DEFAULT_ICON ? callsignColor(callsign) : def.color;
 
-  const { x, y } = aprsSymbolOffset(symbol, symbolTable || '/');
+  const iconHtml = `
+    <div class="aprs-marker-inner">
+      <div class="aprs-icon-wrap" style="background:${color}">
+        <i class="fa-solid ${def.icon}"></i>
+      </div>
+      <span class="aprs-label">${callsign}</span>
+    </div>`;
 
   return L.divIcon({
     className: 'aprs-marker-wrap',
-    html: `
-      <div class="aprs-marker-inner">
-        <div class="aprs-symbol" style="
-          background-image: url('${APRS_SPRITE_URL}');
-          background-position: ${x}px ${y}px;
-          background-repeat: no-repeat;
-          background-size: auto;
-          width: ${SYMBOL_SIZE}px;
-          height: ${SYMBOL_SIZE}px;
-          image-rendering: pixelated;
-        "></div>
-        <span class="aprs-label">${callsign}</span>
-      </div>`,
-    iconSize: [80, 36],
-    iconAnchor: [40, 9],   // anchor at center of symbol
-    popupAnchor: [0, -12],
+    html: iconHtml,
+    iconSize: [70, 44],
+    iconAnchor: [35, 22],
+    popupAnchor: [0, -24],
   });
 }
 
