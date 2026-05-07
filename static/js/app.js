@@ -6,8 +6,8 @@
 'use strict';
 
 /* ── Constants ── */
-const DEFAULT_CENTER = [39.7392, -104.9903]; // Denver, CO
-const DEFAULT_ZOOM = 8;
+const DEFAULT_CENTER = [40.4074185,-105.1433749]; // Loveland, CO
+const DEFAULT_ZOOM = 14;
 
 /**
  * Available map tile layers.
