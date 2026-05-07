@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <title>APRS Tracker</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
@@ -14,10 +15,10 @@
     <header class="app-header">
       <div class="header-inner">
         <div class="header-title">
-          <span class="header-icon">&#9991;</span>
+          <i class="fa-solid fa-tower-broadcast header-icon"></i>
           <span>APRS Tracker</span>
         </div>
-        <button id="btn-settings" class="icon-btn" aria-label="Settings" title="Settings">&#9881;</button>
+        <button id="btn-settings" class="icon-btn" aria-label="Settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
       </div>
     </header>
 
@@ -80,7 +81,7 @@
     <div id="settings-drawer" class="settings-drawer" hidden>
       <div class="drawer-header">
         <span>Settings</span>
-        <button id="btn-close-settings" class="icon-btn" aria-label="Close settings">&#10005;</button>
+        <button id="btn-close-settings" class="icon-btn" aria-label="Close settings"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="drawer-body">
         <label class="setting-row">
