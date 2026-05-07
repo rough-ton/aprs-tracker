@@ -46,7 +46,7 @@ USER aprs
 EXPOSE 5000
 
 CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5000", \
+     "--bind", "0.0.0.0:5050", \
      "--workers", "2", \
      "--timeout", "30", \
      "--worker-tmp-dir", "/tmp", \
