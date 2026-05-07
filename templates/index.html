@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>APRS Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="header-title">
+          <span class="header-icon">&#9991;</span>
+          <span>APRS Tracker</span>
+        </div>
+        <button id="btn-settings" class="icon-btn" aria-label="Settings" title="Settings">&#9881;</button>
+      </div>
+    </header>
+
+    <!-- Callsign input bar -->
+    <section class="search-bar">
+      <div class="search-inner">
+        <input
+          id="input-callsigns"
+          type="text"
+          placeholder="KF0WMG, W1AW, ..."
+          autocomplete="off"
+          autocapitalize="characters"
+          spellcheck="false"
+          aria-label="Enter callsigns separated by commas"
+        />
+        <button id="btn-lookup" class="btn-primary">Look up</button>
+      </div>
+      <div id="search-hint" class="search-hint">Enter one or more callsigns, comma-separated</div>
+    </section>
+
+    <!-- Tab bar -->
+    <nav class="tab-bar" role="tablist">
+      <button class="tab active" data-tab="map" role="tab" aria-selected="true">Map</button>
+      <button class="tab" data-tab="history" role="tab" aria-selected="false">History</button>
+      <button class="tab" data-tab="weather" role="tab" aria-selected="false">Weather</button>
+    </nav>
+
+    <!-- Main content area -->
+    <main class="content-area">
+
+      <!-- MAP TAB -->
+      <div id="tab-map" class="tab-pane active">
+        <div id="map"></div>
+        <div id="station-cards" class="station-cards"></div>
+      </div>
+
+      <!-- HISTORY TAB -->
+      <div id="tab-history" class="tab-pane">
+        <div class="history-controls">
+          <label for="history-callsign-select">Callsign</label>
+          <select id="history-callsign-select">
+            <option value="">-- look up callsigns first --</option>
+          </select>
+          <button id="btn-load-history" class="btn-secondary">Load history</button>
+        </div>
+        <div id="history-map"></div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+
+      <!-- WEATHER TAB -->
+      <div id="tab-weather" class="tab-pane">
+        <div id="weather-cards" class="weather-cards">
+          <div class="empty-state">Look up callsigns to see weather telemetry.</div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Settings drawer -->
+    <div id="settings-drawer" class="settings-drawer" hidden>
+      <div class="drawer-header">
+        <span>Settings</span>
+        <button id="btn-close-settings" class="icon-btn" aria-label="Close settings">&#10005;</button>
+      </div>
+      <div class="drawer-body">
+        <label class="setting-row">
+          <span>Auto-refresh</span>
+          <input type="checkbox" id="setting-autorefresh" />
+        </label>
+        <label class="setting-row">
+          <span>Refresh interval (s)</span>
+          <input type="number" id="setting-interval" value="60" min="15" max="300" />
+        </label>
+        <label class="setting-row">
+          <span>Units</span>
+          <select id="setting-units">
+            <option value="metric">Metric (km/h, °C)</option>
+            <option value="imperial">Imperial (mph, °F)</option>
+          </select>
+        </label>
+        <label class="setting-row">
+          <span>Saved callsigns</span>
+          <input type="text" id="setting-saved" placeholder="KF0WMG, W1AW" />
+        </label>
+        <button id="btn-save-settings" class="btn-primary" style="margin-top:12px;width:100%">Save</button>
+      </div>
+    </div>
+    <div id="settings-overlay" class="overlay" hidden></div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading" hidden>
+      <div class="spinner"></div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
