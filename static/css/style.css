@@ -111,10 +111,9 @@ body {
 }
 
 .header-icon {
-  font-size: 20px;
-  line-height: 1;
   flex-shrink: 0;
-  color: var(--accent);
+  display: block;
+  border-radius: 6px;
 }
 
 .icon-btn {

@@ -22,7 +22,8 @@ CORS(app)
 
 APRS_FI_BASE_URL = "https://api.aprs.fi/api/get"
 APRS_FI_API_KEY = os.environ.get("APRS_FI_API_KEY", "")
-BUILD_VERSION = os.environ.get("BUILD_VERSION", "dev")
+_raw_version = os.environ.get("BUILD_VERSION", "dev")
+BUILD_VERSION = _raw_version[:7] if _raw_version != "dev" else "dev"
 REQUEST_TIMEOUT = 10
 
 
