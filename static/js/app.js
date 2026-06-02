@@ -57,6 +57,14 @@ const state = {
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
+/* ── HTML escaping ── */
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /* ── Maps ── */
 let mainMap = null;
 let histMap = null;
@@ -253,7 +261,7 @@ function makeMarkerIcon(callsign, symbol, symbolTable) {
       <div class="aprs-icon-wrap" style="background:${color}">
         <i class="fa-solid ${def.icon}"></i>
       </div>
-      <span class="aprs-label">${callsign}</span>
+      <span class="aprs-label">${esc(callsign)}</span>
     </div>`;
 
   return L.divIcon({
@@ -292,13 +300,13 @@ async function fetchHistory(callsign, limit = 20) {
 /* ── Popup HTML ── */
 function buildPopupHtml(entry) {
   return `
-    <div class="popup-callsign">${entry.callsign}</div>
+    <div class="popup-callsign">${esc(entry.callsign)}</div>
     <div class="popup-row">Coords: <span>${fmtCoord(entry.lat, entry.lng)}</span></div>
     <div class="popup-row">Altitude: <span>${fmtAlt(entry.altitude)}</span></div>
     <div class="popup-row">Speed: <span>${fmtSpeed(entry.speed)}</span></div>
     <div class="popup-row">Course: <span>${entry.course ? entry.course + '°' : '—'}</span></div>
     <div class="popup-row">Last heard: <span>${timeAgo(entry.lasttime)}</span></div>
-    ${entry.comment ? `<div class="popup-row" style="margin-top:4px;color:#8fa">"${entry.comment}"</div>` : ''}
+    ${entry.comment ? `<div class="popup-row" style="margin-top:4px;color:#8fa">"${esc(entry.comment)}"</div>` : ''}
   `;
 }
 
@@ -316,7 +324,7 @@ function renderStationCards() {
     card.dataset.callsign = entry.callsign;
     card.innerHTML = `
       <div class="card-header">
-        <span class="card-callsign">${entry.callsign}</span>
+        <span class="card-callsign">${esc(entry.callsign)}</span>
         <span class="card-time">${timeAgo(entry.lasttime)}</span>
       </div>
       <div class="card-grid">
@@ -325,7 +333,7 @@ function renderStationCards() {
         <div class="card-field">Speed <span>${fmtSpeed(entry.speed)}</span></div>
         <div class="card-field">Course <span>${entry.course ? entry.course + '°' : '—'}</span></div>
       </div>
-      ${entry.comment ? `<div class="card-comment">${entry.comment}</div>` : ''}
+      ${entry.comment ? `<div class="card-comment">${esc(entry.comment)}</div>` : ''}
     `;
     card.addEventListener('click', () => {
       const m = markers[entry.callsign];
@@ -379,7 +387,7 @@ function renderWeather() {
     const card = document.createElement('div');
     card.className = 'wx-card';
     card.innerHTML = `
-      <div class="wx-callsign">${wx.callsign}</div>
+      <div class="wx-callsign">${esc(wx.callsign)}</div>
       <div class="wx-grid">
         ${wxMetric('Temp', fmtTemp(wx.temp), wx.temp != null && Math.abs(wx.temp) > 35 ? 'hi' : '')}
         ${wxMetric('Humidity', wx.humidity != null ? wx.humidity.toFixed(0) + ' %' : '—', 'accent')}
@@ -578,7 +586,7 @@ function closeSettings() {
 
 function applySettings() {
   state.settings.autoRefresh = $('#setting-autorefresh').checked;
-  state.settings.interval = parseInt($('#setting-interval').value, 10) || 60;
+  state.settings.interval = Math.min(300, Math.max(15, parseInt($('#setting-interval').value, 10) || 60));
   state.settings.units = $('#setting-units').value;
   state.settings.savedCallsigns = $('#setting-saved').value.trim();
   saveSettings();
