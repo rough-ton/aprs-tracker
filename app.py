@@ -27,7 +27,7 @@ _raw_version = os.environ.get("BUILD_VERSION", "dev")
 BUILD_VERSION = _raw_version[:7] if _raw_version != "dev" else "dev"
 REQUEST_TIMEOUT = 10
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
 DB_PATH = os.path.join(DATA_DIR, "history.db")
 
 
