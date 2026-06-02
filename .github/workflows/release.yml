@@ -41,6 +41,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
+      - name: Debug filesystem
+        run: |
+          ls -la /mnt/user/appdata/aprs-tracker
+          whoami
+          mount | grep mnt
+
       - name: Sync compose file
         run: cp ${{ github.workspace }}/docker-compose.yml /mnt/user/appdata/aprs-tracker/docker-compose.yml
 
