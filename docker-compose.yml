@@ -1,6 +1,6 @@
 services:
   aprs-tracker:
-    build: .
+    image: 10.0.20.100:5000/aprs-tracker:latest
     container_name: aprs-tracker
     restart: unless-stopped
     ports:
@@ -9,6 +9,8 @@ services:
       - APRS_FI_API_KEY=${APRS_FI_API_KEY}
       - PORT=5050
       - FLASK_DEBUG=0
+    volumes:
+      - /mnt/user/appdata/aprs-tracker/data:/app/data
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/api/health')"]
       interval: 30s
