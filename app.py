@@ -3,6 +3,7 @@ APRS Tracker - Flask web application for displaying APRS data via aprs.fi API.
 """
 
 import os
+import sqlite3
 import logging
 from functools import lru_cache
 from typing import Any
@@ -25,6 +26,57 @@ APRS_FI_API_KEY = os.environ.get("APRS_FI_API_KEY", "")
 _raw_version = os.environ.get("BUILD_VERSION", "dev")
 BUILD_VERSION = _raw_version[:7] if _raw_version != "dev" else "dev"
 REQUEST_TIMEOUT = 10
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DB_PATH = os.path.join(DATA_DIR, "history.db")
+
+
+def _db() -> sqlite3.Connection:
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db() -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with _db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS position_history (
+                callsign     TEXT    NOT NULL,
+                lat          REAL    NOT NULL,
+                lng          REAL    NOT NULL,
+                altitude     REAL,
+                speed        REAL,
+                course       REAL,
+                symbol       TEXT,
+                symbol_table TEXT,
+                comment      TEXT,
+                path         TEXT,
+                srccall      TEXT,
+                dstcall      TEXT,
+                lasttime     INTEGER,
+                time         INTEGER NOT NULL,
+                PRIMARY KEY (callsign, time)
+            )
+        """)
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_callsign_time ON position_history(callsign, time DESC)"
+        )
+
+
+def store_positions(entries: list[dict[str, Any]]) -> None:
+    with _db() as conn:
+        conn.executemany(
+            """
+            INSERT OR IGNORE INTO position_history
+                (callsign, lat, lng, altitude, speed, course, symbol, symbol_table,
+                 comment, path, srccall, dstcall, lasttime, time)
+            VALUES
+                (:callsign, :lat, :lng, :altitude, :speed, :course, :symbol, :symbol_table,
+                 :comment, :path, :srccall, :dstcall, :lasttime, :time)
+            """,
+            entries,
+        )
 
 
 def build_aprs_params(callsigns: list[str], what: str = "loc") -> dict[str, str]:
@@ -137,6 +189,9 @@ def parse_wx_entry(entry: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+init_db()
+
+
 @app.route("/")
 def index() -> str:
     """Render the main single-page application.
@@ -168,6 +223,7 @@ def api_location() -> tuple[Any, int]:
     try:
         data = fetch_aprs_data(callsigns, what="loc")
         entries = [parse_location_entry(e) for e in data.get("entries", [])]
+        store_positions(entries)
         return jsonify({"ok": True, "count": len(entries), "entries": entries})
     except ValueError as exc:
         logger.warning(f"Location fetch config error: {exc}")
@@ -233,32 +289,22 @@ def api_history() -> tuple[Any, int]:
     except ValueError:
         return jsonify({"error": "'limit' must be an integer."}), 400
 
-    if not APRS_FI_API_KEY:
-        return jsonify({"error": "APRS_FI_API_KEY environment variable is not set."}), 400
+    logger.info(f"Fetching local history for {callsign}, limit={limit}")
+    with _db() as conn:
+        rows = conn.execute(
+            """
+            SELECT callsign, lat, lng, altitude, speed, course, symbol, symbol_table,
+                   comment, path, srccall, dstcall, lasttime, time
+            FROM position_history
+            WHERE callsign = ?
+            ORDER BY time DESC
+            LIMIT ?
+            """,
+            (callsign, limit),
+        ).fetchall()
 
-    params = {
-        "name": callsign,
-        "what": "loc",
-        "apikey": APRS_FI_API_KEY,
-        "format": "json",
-        "tail": "86400",  # look back 24 hours; limit applied server-side below
-    }
-
-    try:
-        logger.info(f"Fetching history for {callsign}, limit={limit}")
-        response = requests.get(APRS_FI_BASE_URL, params=params, timeout=REQUEST_TIMEOUT)
-        response.raise_for_status()
-        data = response.json()
-        if data.get("result") == "fail":
-            raise ValueError(f"aprs.fi error: {data.get('description', 'Unknown')}")
-        entries = [parse_location_entry(e) for e in data.get("entries", [])][:limit]
-        return jsonify({"ok": True, "callsign": callsign, "count": len(entries), "entries": entries})
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-    except requests.HTTPError as exc:
-        return jsonify({"error": f"Upstream API error: {exc.response.status_code}"}), 502
-    except requests.RequestException as exc:
-        return jsonify({"error": "Network error contacting aprs.fi."}), 503
+    entries = [dict(row) for row in rows]
+    return jsonify({"ok": True, "callsign": callsign, "count": len(entries), "entries": entries})
 
 
 @app.route("/api/health")
