@@ -922,7 +922,7 @@ body {
     max-width: none;
   }
 
-  #tab-map {
+  #tab-map.active {
     display: grid;
     grid-template-columns: 1fr 360px;
     grid-template-rows: auto 1fr;
