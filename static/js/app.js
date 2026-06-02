@@ -347,9 +347,22 @@ function renderStationCards() {
 }
 
 /* ── Update map markers ── */
+function fitMapBounds() {
+  const latlngs = Object.values(state.locationData).map(e => [e.lat, e.lng]);
+  if (latlngs.length === 1) {
+    mainMap.flyTo(latlngs[0], DEFAULT_ZOOM, { duration: 1 });
+  } else if (latlngs.length > 1) {
+    mainMap.flyToBounds(L.latLngBounds(latlngs), { padding: [40, 40], duration: 1 });
+  }
+}
+
 function updateMapMarkers() {
-  // Force Leaflet to recalculate container bounds — prevents width blowout on mobile
-  if (mainMap) mainMap.invalidateSize({ pan: false });
+  const mapIsActive = $('#tab-map').classList.contains('active');
+
+  // Only invalidate size when the map tab is visible — calling it on a hidden
+  // container gives Leaflet a zero-size box, corrupting its coordinate state
+  // and causing flyTo/flyToBounds to throw "Invalid LatLng (NaN, NaN)".
+  if (mainMap && mapIsActive) mainMap.invalidateSize({ pan: false });
 
   Object.values(state.locationData).forEach(entry => {
     const latlng = [entry.lat, entry.lng];
@@ -364,12 +377,7 @@ function updateMapMarkers() {
     }
   });
 
-  const latlngs = Object.values(state.locationData).map(e => [e.lat, e.lng]);
-  if (latlngs.length === 1) {
-    mainMap.flyTo(latlngs[0], DEFAULT_ZOOM, { duration: 1 });
-  } else if (latlngs.length > 1) {
-    mainMap.flyToBounds(L.latLngBounds(latlngs), { padding: [40, 40], duration: 1 });
-  }
+  if (mapIsActive) fitMapBounds();
 }
 
 /* ── Render weather ── */
@@ -561,7 +569,12 @@ function switchTab(name) {
   });
 
   if (name === 'map') {
-    setTimeout(() => mainMap && mainMap.invalidateSize(), 50);
+    setTimeout(() => {
+      if (mainMap) {
+        mainMap.invalidateSize({ pan: false });
+        fitMapBounds();
+      }
+    }, 50);
   }
 }
 
