@@ -26,7 +26,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Non-root user with a real home directory so Gunicorn's master process
 # can write its control socket without hitting /nonexistent
-RUN addgroup --system aprs \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gosu \
+    && rm -rf /var/lib/apt/lists/* \
+    && addgroup --system aprs \
     && adduser --system --ingroup aprs --home /home/aprs aprs \
     && mkdir -p /home/aprs \
     && chown aprs:aprs /home/aprs
@@ -41,10 +44,13 @@ COPY --chown=aprs:aprs app.py .
 COPY --chown=aprs:aprs templates/ templates/
 COPY --chown=aprs:aprs static/ static/
 
-USER aprs
+# Entrypoint runs as root to fix bind-mount permissions, then drops to aprs
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 5050
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["gunicorn", \
      "--bind", "0.0.0.0:5050", \
      "--workers", "2", \
