@@ -241,7 +241,7 @@ def api_history() -> tuple[Any, int]:
         "what": "loc",
         "apikey": APRS_FI_API_KEY,
         "format": "json",
-        "tail": str(limit),
+        "tail": "86400",  # look back 24 hours; limit applied server-side below
     }
 
     try:
@@ -251,7 +251,7 @@ def api_history() -> tuple[Any, int]:
         data = response.json()
         if data.get("result") == "fail":
             raise ValueError(f"aprs.fi error: {data.get('description', 'Unknown')}")
-        entries = [parse_location_entry(e) for e in data.get("entries", [])]
+        entries = [parse_location_entry(e) for e in data.get("entries", [])][:limit]
         return jsonify({"ok": True, "callsign": callsign, "count": len(entries), "entries": entries})
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
