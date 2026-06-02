@@ -10,7 +10,8 @@ from typing import Any
 
 import requests
 from flask import Flask, jsonify, render_template, request
-from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,7 +20,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per hour"],
+    storage_uri="memory://",
+)
 
 APRS_FI_BASE_URL = "https://api.aprs.fi/api/get"
 APRS_FI_API_KEY = os.environ.get("APRS_FI_API_KEY", "")
@@ -203,6 +210,7 @@ def index() -> str:
 
 
 @app.route("/api/location")
+@limiter.limit("20 per minute")
 def api_location() -> tuple[Any, int]:
     """Return current position data for one or more callsigns.
 
@@ -219,6 +227,8 @@ def api_location() -> tuple[Any, int]:
     callsigns = [cs.strip().upper() for cs in raw.split(",") if cs.strip()]
     if not callsigns:
         return jsonify({"error": "No valid callsigns provided."}), 400
+    if len(callsigns) > 10:
+        return jsonify({"error": "Too many callsigns (max 10)."}), 400
 
     try:
         data = fetch_aprs_data(callsigns, what="loc")
@@ -237,6 +247,7 @@ def api_location() -> tuple[Any, int]:
 
 
 @app.route("/api/weather")
+@limiter.limit("20 per minute")
 def api_weather() -> tuple[Any, int]:
     """Return weather telemetry for one or more callsigns.
 
@@ -253,6 +264,8 @@ def api_weather() -> tuple[Any, int]:
     callsigns = [cs.strip().upper() for cs in raw.split(",") if cs.strip()]
     if not callsigns:
         return jsonify({"error": "No valid callsigns provided."}), 400
+    if len(callsigns) > 10:
+        return jsonify({"error": "Too many callsigns (max 10)."}), 400
 
     try:
         data = fetch_aprs_data(callsigns, what="wx")
@@ -270,6 +283,7 @@ def api_weather() -> tuple[Any, int]:
 
 
 @app.route("/api/history")
+@limiter.limit("60 per minute")
 def api_history() -> tuple[Any, int]:
     """Return packet history (last positions) for a single callsign.
 
@@ -314,7 +328,7 @@ def health() -> tuple[Any, int]:
     Returns:
         JSON status response.
     """
-    return jsonify({"status": "ok", "api_key_configured": bool(APRS_FI_API_KEY)})
+    return jsonify({"status": "ok"})
 
 
 if __name__ == "__main__":
