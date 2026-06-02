@@ -906,6 +906,21 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
+/* ── Settings: centered modal on tablet+ ── */
+@media (min-width: 581px) {
+  .settings-drawer {
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px;
+    max-width: calc(100vw - 48px);
+    border-radius: var(--radius-xl);
+    padding-bottom: 16px;
+  }
+}
+
 /* ── Tablet (581px–899px): centered card ── */
 @media (min-width: 581px) and (max-width: 899px) {
   #app {
