@@ -635,6 +635,15 @@ function init() {
     btn.classList.toggle('active', btn.dataset.layer === (state.settings.mapLayer || 'osm'));
   });
 
+  // Invalidate map size on window resize (handles mobile↔desktop layout switch)
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (mainMap) mainMap.invalidateSize({ pan: false });
+    }, 150);
+  });
+
   // Settings
   $('#btn-settings').addEventListener('click', openSettings);
   $('#btn-close-settings').addEventListener('click', closeSettings);
