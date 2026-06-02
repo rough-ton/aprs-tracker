@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: Sync compose file
-        run: cp ${{ github.workspace }}/docker-compose.yml /mnt/user/appdata/aprs-tracker/
+        run: cp ${{ github.workspace }}/docker-compose.yml /mnt/user/appdata/aprs-tracker/docker-compose.yml
 
       - name: Deploy latest image
         run: |
