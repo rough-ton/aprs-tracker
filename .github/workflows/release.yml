@@ -41,18 +41,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Debug filesystem
-        run: |
-          ls -la /mnt/user/appdata/aprs-tracker
-          whoami
-          mount | grep mnt
-
       - name: Sync compose file
-        run: cp ${{ github.workspace }}/docker-compose.yml /mnt/user/appdata/aprs-tracker/docker-compose.yml
+        run: cp ${{ github.workspace }}/docker-compose.yml /runner/persistent_files/docker-compose.yml
 
       - name: Deploy latest image
         run: |
-          cd /mnt/user/appdata/aprs-tracker
+          cd /runner/persistent_files
           docker compose pull
           docker compose up -d --remove-orphans
 
