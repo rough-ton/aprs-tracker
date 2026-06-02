@@ -33,3 +33,22 @@ jobs:
             BUILD_VERSION=${{ github.sha }}
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Sync compose file
+        run: cp ${{ github.workspace }}/docker-compose.yml /mnt/user/appdata/aprs-tracker/
+
+      - name: Deploy latest image
+        run: |
+          cd /mnt/user/appdata/aprs-tracker
+          docker compose pull
+          docker compose up -d --remove-orphans
+
+      - name: Prune old images
+        run: docker image prune -f
