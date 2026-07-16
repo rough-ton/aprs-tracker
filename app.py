@@ -33,6 +33,7 @@ APRS_FI_API_KEY = os.environ.get("APRS_FI_API_KEY", "")
 _raw_version = os.environ.get("BUILD_VERSION", "dev")
 BUILD_VERSION = _raw_version[:7] if _raw_version != "dev" else "dev"
 REQUEST_TIMEOUT = 10
+NUMERIC_SSIDS = [str(i) for i in range(1, 16)]
 
 DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
 DB_PATH = os.path.join(DATA_DIR, "history.db")
@@ -231,8 +232,33 @@ def api_location() -> tuple[Any, int]:
         return jsonify({"error": "Too many callsigns (max 10)."}), 400
 
     try:
+        # Step 1: query callsigns as provided
         data = fetch_aprs_data(callsigns, what="loc")
-        entries = [parse_location_entry(e) for e in data.get("entries", [])]
+        found: dict[str, Any] = {
+            e["callsign"]: e
+            for e in (parse_location_entry(x) for x in data.get("entries", []))
+        }
+
+        # Step 2: for bare callsigns, probe numeric SSID variants (-1 … -15)
+        already_queried = set(callsigns)
+        bare = [cs for cs in callsigns if "-" not in cs]
+        if bare:
+            variants = [
+                f"{cs}-{n}"
+                for cs in bare
+                for n in NUMERIC_SSIDS
+                if f"{cs}-{n}" not in found and f"{cs}-{n}" not in already_queried
+            ]
+            if variants:
+                try:
+                    data2 = fetch_aprs_data(variants, what="loc")
+                    for x in data2.get("entries", []):
+                        e = parse_location_entry(x)
+                        found.setdefault(e["callsign"], e)
+                except Exception as exc:
+                    logger.debug("SSID discovery step failed: %s", exc)
+
+        entries = list(found.values())
         store_positions(entries)
         return jsonify({"ok": True, "count": len(entries), "entries": entries})
     except ValueError as exc:
