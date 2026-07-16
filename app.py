@@ -252,11 +252,13 @@ def api_location() -> tuple[Any, int]:
             if variants:
                 try:
                     data2 = fetch_aprs_data(variants, what="loc")
+                    discovered = [x.get("name") for x in data2.get("entries", [])]
+                    logger.info("SSID discovery returned: %s", discovered)
                     for x in data2.get("entries", []):
                         e = parse_location_entry(x)
                         found.setdefault(e["callsign"], e)
                 except Exception as exc:
-                    logger.debug("SSID discovery step failed: %s", exc)
+                    logger.info("SSID discovery step failed: %s", exc)
 
         entries = list(found.values())
         store_positions(entries)
