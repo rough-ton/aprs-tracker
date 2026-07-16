@@ -96,10 +96,8 @@ def build_aprs_params(callsigns: list[str], what: str = "loc") -> dict[str, str]
     Returns:
         Dictionary of query parameters for the API request.
     """
-    # Bare callsigns (no SSID) use a wildcard so all SSIDs are returned.
-    expanded = [cs if "-" in cs else cs + "*" for cs in callsigns]
     return {
-        "name": ",".join(expanded),
+        "name": ",".join(callsigns),
         "what": what,
         "apikey": APRS_FI_API_KEY,
         "format": "json",
