@@ -1,7 +1,10 @@
 # Environment
 .env
+.env.local
+.env.*.local
 
-# Python
+# Node and Python
+node_modules/
 __pycache__/
 *.pyc
 *.pyo
@@ -11,12 +14,44 @@ venv/
 # Docker
 *.tar
 
-# macOS
+# OS files
 .DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # Graphify
 graphify-out/
+
+# Claude Code directories
+.claude/
+.claude/settings.json
+.claude/settings.local.json
+
+# Claude Code skills cache and logs
+.claude/skills/.cache/
+.claude/skills/*.log
+.claude/skills/state/
+.claude/skills/tmp/
+
+# Claude Code conversation and session data
+.claude/conversations/
+.claude/sessions/
+.claude/checkpoints/
+
+# Skill-specific exclusions
+*.skill-backup
+skill-state.json
+conversation-history/
+.claude-history
+
+# Generated artifacts
+dist/
+build/
+*.generated.*
+*.tmp
