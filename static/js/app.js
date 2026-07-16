@@ -516,10 +516,18 @@ async function doLookup() {
     if (locData.status === 'fulfilled' && locData.value.ok) {
       state.locationData = {};
       locData.value.entries.forEach(e => { state.locationData[e.callsign] = e; });
+      // Replace searched callsigns with the actual SSIDs returned so that
+      // the history dropdown reflects what was found.
+      const found = locData.value.entries.map(e => e.callsign);
+      if (found.length) state.callsigns = found;
       updateMapMarkers();
       renderStationCards();
-      const found = locData.value.entries.map(e => e.callsign);
-      const notFound = callsigns.filter(cs => !found.includes(cs));
+      // A bare callsign (no dash) is satisfied when any returned callsign
+      // shares the same base (e.g. "KF0WMG" matches "KF0WMG-HT").
+      const notFound = callsigns.filter(cs => {
+        if (cs.includes('-')) return !found.includes(cs);
+        return !found.some(f => f === cs || f.startsWith(cs + '-'));
+      });
       if (notFound.length) {
         showToast(`No data: ${notFound.join(', ')}`);
       }
