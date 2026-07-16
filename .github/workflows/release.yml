@@ -48,7 +48,8 @@ jobs:
         run: |
           cd /runner/persistent_files
           docker compose pull
-          docker compose up -d --remove-orphans --force-recreate
+          docker compose down --remove-orphans
+          docker compose up -d
 
       - name: Prune old images
         run: docker image prune -f
