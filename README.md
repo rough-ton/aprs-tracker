@@ -2,6 +2,8 @@
 
 A mobile-friendly Flask web app for tracking APRS stations via the aprs.fi API.
 
+![APRS Tracker screenshot](docs/screenshot.png)
+
 ## Features
 
 - **Map view** — Live station positions on a dark Leaflet map (CARTO Dark tiles)
