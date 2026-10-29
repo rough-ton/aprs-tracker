@@ -12,9 +12,9 @@ FROM python:3.12-slim
 
 LABEL org.opencontainers.image.title="aprs-tracker"
 LABEL org.opencontainers.image.description="Mobile-friendly APRS station tracker via aprs.fi"
-LABEL org.opencontainers.image.source="https://github.com/YOUR_USERNAME/aprs-tracker"
+LABEL org.opencontainers.image.source="https://github.com/rough-ton/aprs-tracker"
 
-# Accept build-time version arg from CI, default to "dev"
+# Optional build-time version arg, defaults to "dev"
 ARG BUILD_VERSION=dev
 ARG BUILD_TIMESTAMP=""
 

@@ -40,6 +40,15 @@ python app.py
 gunicorn -w 2 -b 0.0.0.0:5050 app:app
 ```
 
+### Or with Docker
+
+```bash
+cp .env.example .env
+# Edit .env and set APRS_FI_API_KEY=<your key>
+
+docker compose up -d --build
+```
+
 App will be available at `http://localhost:5050`.
 
 ## API Endpoints
